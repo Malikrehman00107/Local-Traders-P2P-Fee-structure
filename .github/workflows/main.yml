@@ -1,0 +1,47 @@
+pragma solidity ^0.8.0;
+
+contract P2PCryptoExchange {
+    // Data structures
+    mapping(address => uint256) public sellerBalances;
+    struct Offer {
+        address seller;
+        uint256 amount;
+        uint256 marketplaceBalance; // Balance after marketplace fee
+    }
+    mapping(uint256 => Offer) public offers; // Keyed by offer ID
+
+    // Function for seller to create an offer
+    function createOffer(uint256 amount) public {
+        uint256 fee = amount * 0.01;
+        uint256 marketplaceBalance = amount - fee;
+        sellerBalances[msg.sender] -= amount; // Deduct from seller's balance
+        offers[offers.length + 1] = Offer(msg.sender, amount, marketplaceBalance);
+    }
+
+    // Function for buyer to buy from an offer
+    function buyFromOffer(uint256 offerId, uint256 amount) public {
+        Offer storage offer = offers[offerId];
+        require(offer.amount >= amount, "Insufficient offer balance");
+
+        uint256 fee = amount * 0.01;
+        offer.amount -= amount;
+        offer.marketplaceBalance -= amount + fee;
+        sellerBalances[offer.seller] += amount - fee; // Credit seller's balance
+        // ... (transfer tokens to buyer, update buyer's balance, etc.)
+    }
+
+    // Function for seller to edit an offer (incomplete)
+    function editOffer(uint256 offerId, uint256 amountToAdd) public {
+        // ... (implement logic to update offer amount and balance)
+    }
+
+    // Function to view a seller's balance
+    function viewSellerBalance(address seller) public view returns (uint256) {
+        return sellerBalances[seller];
+    }
+
+    // Function to view an offer's marketplace balance
+    function viewOfferMarketplaceBalance(uint256 offerId) public view returns (uint256) {
+        return offers[offerId].marketplaceBalance;
+    }
+}
